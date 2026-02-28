@@ -93,6 +93,10 @@ export interface WeaknessProfile {
   strongest: Skill[];
   sessionCount: number;
   lastUpdated: number;
+  // historicalScores stores past skill aggregate snapshots used by the
+  // progress page to render trends. It mirrors the structure of
+  // `aggregates` but may include additional history data over time.
+  historicalScores?: Partial<Record<Skill, SkillAggregate>>;
 }
 
 export interface ProgressData {
@@ -104,5 +108,8 @@ export interface ProgressData {
     overallScore: number;
     date: number;
   }[];
-  skillAggregates: Partial<Record<Skill, SkillAggregate>>;
+  // for backwards compatibility we keep the old `skillAggregates` field,
+  // but `skillTrends` is the preferred name used by the client.
+  skillTrends: Partial<Record<Skill, SkillAggregate>>;
+  skillAggregates?: Partial<Record<Skill, SkillAggregate>>;
 }
