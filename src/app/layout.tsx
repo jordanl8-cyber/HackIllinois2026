@@ -3,7 +3,7 @@ import Nav from "@/components/Nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Interview Coach",
+  title: "InterviewIQ",
   description: "Adaptive mock interviews powered by AI",
 };
 

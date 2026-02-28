@@ -15,7 +15,7 @@ export default function LandingPage() {
 
   return (
     <main className={styles.container}>
-      <h1 className={styles.title}>AI Interview Coach</h1>
+      <h1 className={styles.title}>InterviewIQ</h1>
       <p className={styles.subtitle}>Adaptive mock interviews powered by AI</p>
       <div className={styles.form}>
         <input
