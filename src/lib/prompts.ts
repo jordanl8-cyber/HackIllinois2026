@@ -65,7 +65,31 @@ Use these insights to ask more targeted follow-up questions when relevant to the
   const categoryBlock = config.questionCategory
     ? `\nQUESTION CATEGORY: Your technical question MUST be in the category: "${config.questionCategory}".
 ${config.interviewType === 'swe' ? `For SWE, this means a LeetCode-style problem focused on ${config.questionCategory.replace(/_/g, ' ')}. The problem should be approachable and beginner-friendly within this data structure category.` : ''}
-${config.interviewType === 'consulting' ? `For consulting, this means a case study focused on ${config.questionCategory.replace(/_/g, ' ')}.` : ''}`
+${config.interviewType === 'consulting' ? `For consulting, this means a case study focused on ${config.questionCategory.replace(/_/g, ' ')}. The case MUST be fully solvable within 3 candidate responses. Provide ALL necessary numerical data and assumptions upfront in the first interviewer message. Do NOT require the candidate to request missing data. Avoid multi-branch case structures. Use small numbers and simple math. Keep the problem clearly scoped.` : ''}
+${config.interviewType === 'generic' && config.questionCategory === 'technical_proficiency' ? `For accounting, this means a foundational accounting question. The question MUST be fully answerable within 3 candidate responses. Provide ALL necessary financial information immediately. Do NOT require follow-up clarification for missing rules or assumptions. Keep scenarios straightforward and focused on a single concept. Avoid layered or multi-part accounting problems.` : ''}`
+    : '';
+
+  // Interview type specific 3-turn constraints
+  const consultingConstraints = config.interviewType === 'consulting'
+    ? `\n3-TURN CONSULTING CONSTRAINTS:
+- The case must be fully solvable within 3 candidate responses.
+- ALL required numerical data and assumptions must be provided upfront in your first message.
+- Do NOT require the candidate to request missing data — give everything they need.
+- Avoid multi-branch case structures. Use a single, clear analytical path.
+- Use small numbers and simple math (e.g., round numbers, simple percentages).
+- The problem must be clearly scoped and realistically completable in 3 exchanges.
+- Structure: Turn 1 = framework/approach, Turn 2 = analysis/calculation, Turn 3 = recommendation.`
+    : '';
+
+  const accountingConstraints = (config.interviewType === 'generic' && config.role.toLowerCase().includes('account'))
+    ? `\n3-TURN ACCOUNTING CONSTRAINTS:
+- The question MUST be fully answerable within 3 candidate responses.
+- ALL necessary financial information, rules, and assumptions must be provided immediately.
+- Do NOT require follow-up clarification for missing rules or assumptions.
+- Keep scenarios straightforward and focused on a single accounting concept.
+- Avoid layered or multi-part accounting problems.
+- Use simple, realistic numbers. No obscure rule exceptions.
+- Structure: Turn 1 = identify concept/approach, Turn 2 = apply/calculate, Turn 3 = explain/conclude.`
     : '';
 
   const retryBlock = config.isRetry
@@ -81,7 +105,7 @@ ${config.company ? `Company: ${config.company}` : ''}
 Interview type: ${config.interviewType}
 Current phase: ${phase}
 Difficulty: ${config.difficulty}
-${focusInstructions}${pastInsightsBlock}${pastQuestionsBlock}${technicalQuestionBlock}${categoryBlock}${retryBlock}
+${focusInstructions}${pastInsightsBlock}${pastQuestionsBlock}${technicalQuestionBlock}${categoryBlock}${retryBlock}${consultingConstraints}${accountingConstraints}
 
 Conversation so far:
 ${conversationHistory || '(none yet)'}
@@ -99,7 +123,10 @@ Generate the next interviewer question or follow-up. Rules:
 - Do NOT evaluate the answer here, just ask the next question
 - STRICT RULE: If the candidate asks for help, hints, guidance, or how to approach the problem, you must NOT provide any help, hints, or guidance. You may acknowledge the request neutrally (e.g., "I understand, but I'd like to see your independent approach.") and restate the question if needed. Never reveal the answer or solution approach.
 - PARTIAL CREDIT FEEDBACK: If the candidate's answer is partially correct, you may briefly acknowledge which parts are correct and which parts need improvement. However, do NOT provide hints, guidance, or steer the candidate toward the correct answer. Your feedback must be descriptive (e.g., "Your approach to X was solid, but Y still needs work."), NOT instructional (e.g., do NOT say "Try thinking about..." or "Consider using...").
-- MESSAGE LIMIT: The candidate has a maximum of 5 messages for this interview. For consulting/case interviews, provide sufficient context and information in each question/response so the candidate can complete the interview within this limit.
+- CRITICAL — 3-TURN LIMIT: This interview is limited to exactly 3 total candidate responses. Structure the question accordingly. Provide all necessary data upfront. Do NOT design multi-stage problems that require more than 3 responses to complete. The candidate must be able to fully demonstrate their ability within 3 exchanges.
+- For consulting/case interviews: provide ALL numerical data, market context, and assumptions in the first question. The candidate should NOT need to ask for missing information.
+- For accounting interviews: provide ALL financial data, rules, and context immediately. Keep to a single concept.
+- For all interview types: each question or follow-up must be self-contained enough that the candidate can give a complete answer.
 
 Respond with ONLY the interviewer's next statement/question, no JSON, no labels.`;
 }
