@@ -395,23 +395,3 @@
   font-size: 0.95rem;
 }
 
-/* ---- Confetti ---- */
-.confettiOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 130px;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: hidden;
-}
-
-.confettiDot {
-  position: absolute;
-  top: 0;
-  width: 5px;
-  height: 5px;
-  border-radius: 1px;
-  animation: confettiFall 0.5s ease-in both;
-}

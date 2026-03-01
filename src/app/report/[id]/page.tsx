@@ -1,6 +1,49 @@
 'use client';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useRef, use } from 'react';
 import styles from './page.module.css';
+
+// Fixed confetti particle positions spread across the full screen width
+const CONFETTI_PARTICLES = [
+  { x: '2%',  delay: 0,   color: '#4A6CF7' },
+  { x: '6%',  delay: 40,  color: '#C9A227' },
+  { x: '10%', delay: 15,  color: '#2EA043' },
+  { x: '14%', delay: 60,  color: '#4A6CF7' },
+  { x: '18%', delay: 25,  color: '#C9A227' },
+  { x: '22%', delay: 75,  color: '#2EA043' },
+  { x: '26%', delay: 10,  color: '#4A6CF7' },
+  { x: '30%', delay: 50,  color: '#C9A227' },
+  { x: '34%', delay: 35,  color: '#2EA043' },
+  { x: '38%', delay: 70,  color: '#4A6CF7' },
+  { x: '42%', delay: 5,   color: '#C9A227' },
+  { x: '46%', delay: 45,  color: '#2EA043' },
+  { x: '50%', delay: 20,  color: '#4A6CF7' },
+  { x: '54%', delay: 65,  color: '#C9A227' },
+  { x: '58%', delay: 30,  color: '#2EA043' },
+  { x: '62%', delay: 80,  color: '#4A6CF7' },
+  { x: '66%', delay: 12,  color: '#C9A227' },
+  { x: '70%', delay: 55,  color: '#2EA043' },
+  { x: '74%', delay: 38,  color: '#4A6CF7' },
+  { x: '78%', delay: 68,  color: '#C9A227' },
+  { x: '82%', delay: 22,  color: '#2EA043' },
+  { x: '86%', delay: 48,  color: '#4A6CF7' },
+  { x: '90%', delay: 8,   color: '#C9A227' },
+  { x: '94%', delay: 72,  color: '#2EA043' },
+  { x: '98%', delay: 32,  color: '#4A6CF7' },
+];
+
+function ConfettiOverlay() {
+  return (
+    <div className={styles.confettiOverlay}>
+      {CONFETTI_PARTICLES.map((p, i) => (
+        <div
+          key={i}
+          className={styles.confettiDot}
+          style={{ left: p.x, background: p.color, animationDelay: `${p.delay}ms` }}
+        />
+      ))}
+    </div>
+  );
+}
 
 const SKILL_LABELS: Record<string, string> = {
   problem_solving: 'Problem Solving',
@@ -128,6 +171,8 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   const { id } = use(params);
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState('');
+  const [showConfetti, setShowConfetti] = useState(false);
+  const confettiShownRef = useRef(false);
 
   useEffect(() => {
     async function fetchReport() {
@@ -142,6 +187,16 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
     }
     fetchReport();
   }, [id]);
+
+  // Fire confetti once when a passing score (>= 7.5) is loaded
+  useEffect(() => {
+    if (!report || confettiShownRef.current) return;
+    confettiShownRef.current = true;
+    if (report.overallScore >= 7.5) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 600);
+    }
+  }, [report]);
 
   if (error) {
     return (
@@ -161,7 +216,9 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   }
 
   return (
-    <main className={styles.container}>
+    <>
+      {showConfetti && <ConfettiOverlay />}
+      <main className={styles.container}>
       <h1 className={styles.title}>Interview Report</h1>
       <div className={styles.meta}>
         <span className={styles.tag}>{report.interviewType.toUpperCase()}</span>
@@ -249,5 +306,6 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         </a>
       </div>
     </main>
+    </>
   );
 }
