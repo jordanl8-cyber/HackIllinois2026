@@ -51,6 +51,7 @@ export interface SessionConfig {
   difficulty: Difficulty;
   focusPlan?: FocusPlan;
   pastInsights?: string[];
+  pastQuestions?: string[];
 }
 
 export interface Session {
@@ -64,6 +65,8 @@ export interface Session {
   phaseIndex: number;
   status: 'active' | 'completed';
   createdAt: number;
+  technicalQuestionAsked: boolean;
+  candidateMessageCount: number;
 }
 
 export interface DrillItem {

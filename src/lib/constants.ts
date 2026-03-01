@@ -41,4 +41,12 @@ export const SKILLS_BY_TYPE: Record<InterviewType, Skill[]> = {
   generic: ['problem_solving', 'communication_clarity', 'star_structure', 'specificity', 'ownership'],
 };
 
-export const MAX_QUESTIONS = 7;
+export const MAX_QUESTIONS = 5;
+
+// Phases that count as the technical question
+export const TECHNICAL_PHASES = new Set([
+  'coding_problem', 'optimization', 'complexity_analysis', 'edge_cases',
+  'case_prompt', 'quant_drill',
+  'product_sense', 'metrics',
+  'skill_probe_1', 'skill_probe_2', 'scenario', 'depth',
+]);

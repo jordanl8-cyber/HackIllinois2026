@@ -203,6 +203,42 @@ export async function uploadInterviewAudio(
   }
 }
 
+/**
+ * Retrieve past interview questions from stored session reports.
+ * Used to prevent exact question repetition across interviews.
+ */
+export async function getPastQuestions(userName: string): Promise<string[]> {
+  try {
+    const client = getSupermemory();
+    const results = await client.search.execute({
+      q: 'interview questions asked',
+      containerTags: [`user_${userName}`],
+      filters: {
+        AND: [{ key: 'type', value: 'session_report' }],
+      },
+    });
+
+    const questions: string[] = [];
+    if (results.results) {
+      for (const result of results.results.slice(0, 10)) {
+        try {
+          const report = JSON.parse(result.content ?? '');
+          // Extract interviewer questions from the stored report content
+          if (report.questions && Array.isArray(report.questions)) {
+            questions.push(...report.questions);
+          }
+        } catch {
+          // Skip unparseable results
+        }
+      }
+    }
+    return questions;
+  } catch (err) {
+    console.error('Failed to retrieve past questions:', err);
+    return [];
+  }
+}
+
 export function updateWeaknessProfile(
   existing: WeaknessProfile | null,
   userName: string,
