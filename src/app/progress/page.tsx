@@ -126,7 +126,7 @@ export default function ProgressPage() {
         <h1 className={styles.title}>Your Progress</h1>
         <div className={styles.empty}>
           <p>No sessions yet. Complete an interview to see your progress.</p>
-          <a href="/new" className={styles.actionButton} style={{ marginTop: '1rem', display: 'inline-block' }}>
+          <a href="/new" className={styles.actionButton} style={{ marginTop: '1.5rem', display: 'inline-block' }}>
             Start Interview
           </a>
         </div>
@@ -211,37 +211,37 @@ export default function ProgressPage() {
       {/* Latest Category Status */}
       {lastRecord && (
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Latest Category Status</h2>
-          <div className={styles.nextInterviewCard}>
-            <p style={{ fontWeight: 600 }}>
-              {catLabel(lastRecord.category)} — {lastRecord.score >= 7.5 ? 'Completed' : 'In Progress'}
+          <h2 className={styles.sectionTitle}>Latest Result</h2>
+          <div className={styles.nextInterviewCard} style={{ borderLeftColor: lastRecord.score >= 7.5 ? 'var(--success)' : 'var(--warning)' }}>
+            <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>
+              {catLabel(lastRecord.category)} — {lastRecord.score >= 7.5 ? 'Cleared' : 'In Progress'}
             </p>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '0.25rem' }}>
               Score: {lastRecord.score}/10
             </p>
           </div>
         </div>
       )}
 
-      {/* Completed Categories */}
+      {/* Levels Cleared */}
       {data.completedCategories.length > 0 && (
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Completed Categories</h2>
+          <h2 className={styles.sectionTitle}>Levels Cleared</h2>
           <ul className={styles.list}>
             {data.completedCategories.map((cat) => (
-              <li key={cat}>{catLabel(cat)} \u2713</li>
+              <li key={cat} style={{ borderLeft: '3px solid var(--success)', color: 'var(--text)' }}>{catLabel(cat)}</li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* In Progress Categories */}
+      {/* In Progress */}
       {data.inProgressCategories.length > 0 && (
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>In Progress Categories</h2>
+          <h2 className={styles.sectionTitle}>In Progress</h2>
           <ul className={styles.list}>
             {data.inProgressCategories.map((cat) => (
-              <li key={cat}>{catLabel(cat)}</li>
+              <li key={cat} style={{ borderLeft: '3px solid var(--warning)' }}>{catLabel(cat)}</li>
             ))}
           </ul>
         </div>
@@ -327,7 +327,7 @@ export default function ProgressPage() {
 
       <div className={styles.actions}>
         <a href="/new" className={styles.actionButton}>Next Interview</a>
-        <a href="/new?reset=1" className={styles.actionButton} style={{ background: 'var(--bg-secondary)', color: 'var(--text)', border: '1px solid var(--border)', marginLeft: '0.75rem' }}>New Session</a>
+        <a href="/new?reset=1" className={styles.actionButton} style={{ background: 'var(--bg-card)', color: 'var(--text)', border: '1px solid var(--border)' }}>New Session</a>
       </div>
     </main>
   );

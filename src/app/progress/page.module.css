@@ -1,158 +1,65 @@
 .container {
   max-width: 700px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 2.5rem 1.5rem 3rem;
+  animation: fadeIn 0.4s var(--ease) both;
 }
 
 .title {
-  font-size: 1.8rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.35rem;
 }
 
 .subtitle {
   color: var(--text-secondary);
   margin-bottom: 2rem;
+  font-size: 0.92rem;
+  font-weight: 500;
 }
 
 .empty {
   text-align: center;
   color: var(--text-secondary);
-  padding: 3rem 0;
+  padding: 4rem 0;
+  font-size: 0.95rem;
 }
 
+/* ---- Sections ---- */
 .section {
   margin-bottom: 2rem;
+  animation: slideUp 0.4s var(--ease) both;
 }
+
+.section:nth-child(3) { animation-delay: 0.05s; }
+.section:nth-child(4) { animation-delay: 0.1s; }
+.section:nth-child(5) { animation-delay: 0.15s; }
+.section:nth-child(6) { animation-delay: 0.2s; }
+.section:nth-child(7) { animation-delay: 0.25s; }
 
 .sectionTitle {
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.45rem;
   border-bottom: 1px solid var(--border);
-}
-
-.sessionList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.sessionRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  text-decoration: none;
   color: var(--text);
-  transition: border-color 0.2s;
 }
 
-.sessionRow:hover {
-  border-color: var(--accent);
-  text-decoration: none;
-}
-
-.sessionInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.tag {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 0.1rem 0.4rem;
-  font-size: 0.75rem;
-}
-
-.sessionScore {
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.scoreGreen { color: var(--success); }
-.scoreYellow { color: var(--warning); }
-.scoreRed { color: var(--danger); }
-
-.skillGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.skillRow {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.skillName {
-  width: 180px;
-  font-size: 0.85rem;
-  flex-shrink: 0;
-}
-
-.skillBarBg {
-  flex: 1;
-  height: 8px;
-  background: var(--bg-secondary);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.skillBarFill {
-  height: 100%;
-  border-radius: 4px;
-}
-
-.skillScore {
-  width: 36px;
-  text-align: right;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.actions {
-  margin-top: 2rem;
-}
-
-.actionButton {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--radius);
-  background: var(--accent);
-  color: white;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.actionButton:hover {
-  opacity: 0.9;
-  text-decoration: none;
-}
-
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  color: var(--text-secondary);
-}
-
+/* ---- Next Interview Card ---- */
 .nextInterviewCard {
   padding: 1rem 1.25rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-size: 0.95rem;
+  border-radius: var(--radius-lg);
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--primary);
 }
 
+/* ---- Stats Grid ---- */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -161,44 +68,202 @@
 }
 
 .statCard {
-  padding: 1rem;
+  padding: 1.1rem 1rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   text-align: center;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.statCard:hover {
+  border-color: var(--border-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .statValue {
-  font-size: 1.6rem;
-  font-weight: 700;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
 .statLabel {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .highlightCard {
   padding: 0.75rem 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--success);
+  background: var(--success-muted);
+  border: 1px solid rgba(46, 160, 67, 0.25);
   border-radius: var(--radius);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  color: var(--text);
 }
 
+/* ---- Session History ---- */
+.sessionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sessionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none !important;
+  color: var(--text) !important;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.sessionRow:hover {
+  border-color: var(--primary);
+  background: var(--bg-card-hover);
+  transform: translateX(2px);
+}
+
+.sessionInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+}
+
+.tag {
+  background: var(--primary-muted);
+  color: var(--primary);
+  border: none;
+  border-radius: 4px;
+  padding: 0.12rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sessionScore {
+  font-weight: 700;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.scoreGreen { color: var(--success); }
+.scoreYellow { color: var(--warning); }
+.scoreRed { color: var(--danger); }
+
+/* ---- Skill Bars ---- */
+.skillGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.skillRow {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.skillName {
+  width: 175px;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.skillBarBg {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.skillBarFill {
+  height: 100%;
+  border-radius: 3px;
+  animation: progressFill 0.8s var(--ease) both;
+}
+
+.skillScore {
+  width: 36px;
+  text-align: right;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Category Lists ---- */
 .list {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .list li {
-  padding: 0.4rem 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.9rem;
+  padding: 0.55rem 0.85rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.88rem;
+  transition: border-color var(--transition-fast);
 }
 
-.list li:last-child {
-  border-bottom: none;
+.list li:hover {
+  border-color: var(--border-light);
+}
+
+/* ---- Actions ---- */
+.actions {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 0.75rem;
+}
+
+.actionButton {
+  display: inline-block;
+  padding: 0.7rem 1.35rem;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: white !important;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none !important;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.actionButton:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 56px);
+  color: var(--text-secondary);
+  font-size: 0.95rem;
 }

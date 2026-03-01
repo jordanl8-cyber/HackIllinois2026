@@ -173,7 +173,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         )}
       </div>
 
-      <div className={styles.overallScore}>
+      <div className={styles.overallScore} style={{ '--score-bar': barColor(report.overallScore) } as React.CSSProperties}>
         <div className={`${styles.scoreNumber} ${scoreColor(report.overallScore)}`}>
           {report.overallScore}/10
         </div>

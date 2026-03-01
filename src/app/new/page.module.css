@@ -1,18 +1,21 @@
 .container {
-  max-width: 600px;
+  max-width: 560px;
   margin: 0 auto;
   padding: 3rem 1.5rem;
+  animation: fadeIn 0.4s var(--ease) both;
 }
 
 .title {
-  font-size: 1.8rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.35rem;
 }
 
 .subtitle {
   color: var(--text-secondary);
   margin-bottom: 2rem;
+  font-size: 0.95rem;
 }
 
 .form {
@@ -25,7 +28,9 @@
   display: block;
   font-weight: 600;
   margin-bottom: 0.4rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  color: var(--text);
 }
 
 .field input,
@@ -36,56 +41,76 @@
   border: 1px solid var(--border);
   background: var(--bg-card);
   color: var(--text);
-  font-size: 1rem;
+  font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 .field input:focus,
 .field textarea:focus {
-  border-color: var(--accent);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-muted);
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--text-muted);
 }
 
 .field textarea {
-  min-height: 150px;
+  min-height: 140px;
   resize: vertical;
+  line-height: 1.6;
 }
 
 .optional {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-weight: 400;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .button {
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--radius);
+  padding: 0.8rem 1.5rem;
+  border-radius: var(--radius-lg);
   border: none;
-  background: var(--accent);
+  background: var(--primary);
   color: white;
   font-size: 1rem;
   font-weight: 600;
-  transition: background 0.2s;
+  letter-spacing: -0.01em;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-md);
   margin-top: 0.5rem;
 }
 
 .button:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .field input:disabled,
 .field textarea:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
-  background: var(--bg-secondary, #1a1a1a);
+  background: var(--bg-secondary);
 }
 
 .error {
   color: var(--danger);
   font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--danger-muted);
+  border-radius: var(--radius);
+  border: 1px solid rgba(218, 54, 51, 0.2);
 }
