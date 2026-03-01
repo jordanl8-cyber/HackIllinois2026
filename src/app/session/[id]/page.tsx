@@ -13,7 +13,6 @@ interface MessageItem {
 /** Detect whether a message contains a fenced code block or looks like code */
 function containsCode(text: string): boolean {
   if (/```/.test(text)) return true;
-  // Heuristic: multiple lines with leading whitespace that look like code
   const lines = text.split('\n');
   if (lines.length >= 3) {
     const indented = lines.filter((l) => /^[ \t]{2,}/.test(l));
@@ -24,10 +23,8 @@ function containsCode(text: string): boolean {
 
 /** Render message content, formatting code blocks with syntax highlighting */
 function renderContent(text: string) {
-  // Split on fenced code blocks (```...```)
   const parts = text.split(/(```[\s\S]*?```)/g);
   if (parts.length === 1 && !text.startsWith('```')) {
-    // No fenced blocks — check if the whole thing looks like code
     if (containsCode(text)) {
       return <pre className={styles.codeBlock}><code>{text}</code></pre>;
     }
@@ -38,7 +35,6 @@ function renderContent(text: string) {
     <>
       {parts.map((part, i) => {
         if (part.startsWith('```') && part.endsWith('```')) {
-          // Extract language hint and code body
           const inner = part.slice(3, -3);
           const newlineIdx = inner.indexOf('\n');
           const code = newlineIdx >= 0 ? inner.slice(newlineIdx + 1) : inner;
@@ -55,53 +51,6 @@ function renderContent(text: string) {
   );
 }
 
-// Fixed confetti particle positions — deterministic, no randomness at render time
-const CONFETTI_PARTICLES = [
-  { x: '2%',  delay: 0,   color: '#4A6CF7' },
-  { x: '6%',  delay: 40,  color: '#C9A227' },
-  { x: '10%', delay: 15,  color: '#2EA043' },
-  { x: '14%', delay: 60,  color: '#4A6CF7' },
-  { x: '18%', delay: 25,  color: '#C9A227' },
-  { x: '22%', delay: 75,  color: '#2EA043' },
-  { x: '26%', delay: 10,  color: '#4A6CF7' },
-  { x: '30%', delay: 50,  color: '#C9A227' },
-  { x: '34%', delay: 35,  color: '#2EA043' },
-  { x: '38%', delay: 70,  color: '#4A6CF7' },
-  { x: '42%', delay: 5,   color: '#C9A227' },
-  { x: '46%', delay: 45,  color: '#2EA043' },
-  { x: '50%', delay: 20,  color: '#4A6CF7' },
-  { x: '54%', delay: 65,  color: '#C9A227' },
-  { x: '58%', delay: 30,  color: '#2EA043' },
-  { x: '62%', delay: 80,  color: '#4A6CF7' },
-  { x: '66%', delay: 12,  color: '#C9A227' },
-  { x: '70%', delay: 55,  color: '#2EA043' },
-  { x: '74%', delay: 38,  color: '#4A6CF7' },
-  { x: '78%', delay: 68,  color: '#C9A227' },
-  { x: '82%', delay: 22,  color: '#2EA043' },
-  { x: '86%', delay: 48,  color: '#4A6CF7' },
-  { x: '90%', delay: 8,   color: '#C9A227' },
-  { x: '94%', delay: 72,  color: '#2EA043' },
-  { x: '98%', delay: 32,  color: '#4A6CF7' },
-];
-
-function ConfettiOverlay() {
-  return (
-    <div className={styles.confettiOverlay}>
-      {CONFETTI_PARTICLES.map((p, i) => (
-        <div
-          key={i}
-          className={styles.confettiDot}
-          style={{
-            left: p.x,
-            background: p.color,
-            animationDelay: `${p.delay}ms`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 export default function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -111,7 +60,6 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
   const [isComplete, setIsComplete] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [reportReady, setReportReady] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
   const [sessionMeta, setSessionMeta] = useState<{
     interviewType: string;
     difficulty: string;
@@ -127,7 +75,6 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
   const prevMsgCountRef = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const sessionJustCompletedRef = useRef(false);
 
   // Fetch session on mount
   useEffect(() => {
@@ -146,7 +93,6 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         });
         if (data.status === 'completed') {
           setIsComplete(true);
-          // Check if report is already generated
           fetch(`/api/sessions/${id}/report`)
             .then((r) => { if (r.ok) setReportReady(true); })
             .catch(() => {});
@@ -157,20 +103,6 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     }
     fetchSession();
   }, [id]);
-
-  // Show confetti when the current session completes and score >= 7.5
-  useEffect(() => {
-    if (!reportReady || !sessionJustCompletedRef.current) return;
-    fetch(`/api/sessions/${id}/report`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.overallScore >= 7.5) {
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 600);
-        }
-      })
-      .catch(() => {});
-  }, [reportReady, id]);
 
   // Speak new interviewer messages via TTS
   useEffect(() => {
@@ -212,12 +144,16 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         body: JSON.stringify({ text }),
         signal: controller.signal,
       });
+
+      // Parse JSON before checking abort so we consume the body
       const data = await res.json();
 
       if (controller.signal.aborted) return;
 
+      // Surface API errors so the catch block shows a message to the user
+      if (!res.ok) throw new Error(data.error || 'Failed to process answer');
+
       if (data.isComplete) {
-        sessionJustCompletedRef.current = true;
         // Show closing message from interviewer
         if (data.nextQuestion) {
           setMessages((prev) => [...prev, { role: 'interviewer', content: data.nextQuestion }]);
@@ -238,7 +174,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
       if (err instanceof DOMException && err.name === 'AbortError') return;
       setMessages((prev) => [
         ...prev,
-        { role: 'interviewer', content: 'Sorry, something went wrong. Could you repeat that?' },
+        { role: 'interviewer', content: 'Sorry, something went wrong. Please try again.' },
       ]);
     }
     abortRef.current = null;
@@ -252,7 +188,6 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         const blob = await stopRecording();
         const formData = new FormData();
         formData.append('audio', blob, 'recording.webm');
-        // Pass session context for Supermemory multimodal extractor upload
         const userName = typeof window !== 'undefined' ? localStorage.getItem('userName') : null;
         if (userName) formData.append('userName', userName);
         formData.append('sessionId', id);
@@ -261,8 +196,6 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         const { text } = await res.json();
         setIsTranscribing(false);
 
-        // Append transcribed voice text to existing input — do NOT auto-submit.
-        // The user must explicitly press Send to submit all input together.
         if (text) {
           setInput((prev) => (prev ? prev + '\n' + text : text));
         }
@@ -275,7 +208,6 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
   };
 
   const handleEndEarly = async () => {
-    // Immediately abort any in-flight AI request
     if (abortRef.current) {
       abortRef.current.abort();
       abortRef.current = null;
@@ -292,27 +224,23 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
       });
       const data = await res.json();
       setIsComplete(true);
-      // Redirect to report if available, otherwise dashboard
       if (data.report) {
         router.push(`/report/${id}`);
       } else {
         router.push('/new');
       }
     } catch {
-      // On failure, redirect to dashboard
       router.push('/new');
     }
     setIsEnding(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Cmd/Ctrl + Enter → submit
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       submitAnswer(input);
       return;
     }
-    // Tab → insert 2-space indentation instead of changing focus
     if (e.key === 'Tab') {
       e.preventDefault();
       const ta = e.currentTarget;
@@ -320,13 +248,11 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
       const end = ta.selectionEnd;
       const newValue = input.substring(0, start) + '  ' + input.substring(end);
       setInput(newValue);
-      // Restore cursor position after state update
       requestAnimationFrame(() => {
         ta.selectionStart = ta.selectionEnd = start + 2;
       });
       return;
     }
-    // Plain Enter → newline (default textarea behavior, no preventDefault needed)
   };
 
   if (initError) {
@@ -349,136 +275,133 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
   const progressPct = Math.max(0, Math.min(100, (sessionMeta.questionCount / sessionMeta.maxQuestions) * 100));
 
   return (
-    <>
-      {showConfetti && <ConfettiOverlay />}
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <div className={styles.headerInfo}>
-            <h2>Mock Interview</h2>
-            <div className={styles.headerMeta}>
-              <span className={styles.tag}>{sessionMeta.interviewType.toUpperCase()}</span>
-              <span className={styles.tag}>{sessionMeta.difficulty}</span>
-              <span className={styles.tag}>{sessionMeta.role}</span>
-              <span className={styles.progressText}>Q {sessionMeta.questionCount} / {sessionMeta.maxQuestions}</span>
-            </div>
-          </div>
-          <div className={styles.headerActions}>
-            {!isComplete && (
-              <button
-                className={`${styles.ttsToggle} ${ttsEnabled ? styles.ttsOn : ''}`}
-                onClick={toggleTTS}
-                title={ttsEnabled ? 'Disable voice' : 'Enable voice'}
-              >
-                {ttsEnabled ? '🔊' : '🔇'}
-              </button>
-            )}
-            {!isComplete && (
-              <button className={styles.endButton} onClick={handleEndEarly} disabled={isEnding}>
-                {isEnding ? 'Ending...' : 'End Interview'}
-              </button>
-            )}
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.headerInfo}>
+          <h2>Mock Interview</h2>
+          <div className={styles.headerMeta}>
+            <span className={styles.tag}>{sessionMeta.interviewType.toUpperCase()}</span>
+            <span className={styles.tag}>{sessionMeta.difficulty}</span>
+            <span className={styles.tag}>{sessionMeta.role}</span>
+            <span className={styles.progressText}>Q {sessionMeta.questionCount} / {sessionMeta.maxQuestions}</span>
           </div>
         </div>
-
-        {/* Progress bar */}
-        <div className={styles.progressBar}>
-          <div className={styles.progressFill} style={{ width: `${progressPct}%` }} />
+        <div className={styles.headerActions}>
+          {!isComplete && (
+            <button
+              className={`${styles.ttsToggle} ${ttsEnabled ? styles.ttsOn : ''}`}
+              onClick={toggleTTS}
+              title={ttsEnabled ? 'Disable voice' : 'Enable voice'}
+            >
+              {ttsEnabled ? '🔊' : '🔇'}
+            </button>
+          )}
+          {!isComplete && (
+            <button className={styles.endButton} onClick={handleEndEarly} disabled={isEnding}>
+              {isEnding ? 'Ending...' : 'End Interview'}
+            </button>
+          )}
         </div>
+      </div>
 
-        <div className={styles.messages}>
-          {messages.map((msg, i) =>
-            msg.role === 'interviewer' ? (
-              <div key={i} className={styles.interviewerWrapper}>
-                <div className={styles.avatar}>AI</div>
-                <div className={`${styles.message} ${styles.interviewer}`}>
-                  {renderContent(msg.content)}
-                </div>
-              </div>
-            ) : (
-              <div key={i} className={`${styles.message} ${styles.candidate}`}>
+      {/* Progress bar */}
+      <div className={styles.progressBar}>
+        <div className={styles.progressFill} style={{ width: `${progressPct}%` }} />
+      </div>
+
+      <div className={styles.messages}>
+        {messages.map((msg, i) =>
+          msg.role === 'interviewer' ? (
+            <div key={i} className={styles.interviewerWrapper}>
+              <div className={styles.avatar}>AI</div>
+              <div className={`${styles.message} ${styles.interviewer}`}>
                 {renderContent(msg.content)}
               </div>
-            )
-          )}
-
-          {/* Thinking indicator */}
-          {!isComplete && !isEnding && (isLoading || isTranscribing) && (
-            <div className={styles.interviewerWrapper}>
-              <div className={styles.avatar}>AI</div>
-              <div className={`${styles.message} ${styles.thinking}`}>
-                {isTranscribing ? 'Transcribing...' : 'Thinking...'}
-              </div>
             </div>
-          )}
-
-          {/* Speaking indicator */}
-          {isSpeaking && (
-            <div className={styles.interviewerWrapper}>
-              <div className={`${styles.avatar} ${styles.avatarActive}`}>AI</div>
-              <div className={`${styles.message} ${styles.interviewer}`}>
-                <div className={styles.speakingDots}>
-                  <span />
-                  <span />
-                  <span />
-                </div>
-              </div>
+          ) : (
+            <div key={i} className={`${styles.message} ${styles.candidate}`}>
+              {renderContent(msg.content)}
             </div>
-          )}
+          )
+        )}
 
-          <div ref={messagesEndRef} />
-        </div>
-
-        {isComplete ? (
-          <div className={styles.completeBanner}>
-            <p>Interview complete!</p>
-            {reportReady ? (
-              <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <a href={`/report/${id}`} className={styles.reportLink}>
-                  View Report
-                </a>
-                <a href="/progress" className={styles.reportLink} style={{ background: 'var(--bg-card)', color: 'var(--text)', border: '1px solid var(--border)' }}>
-                  Progress
-                </a>
-                <a href="/new?reset=1" className={styles.reportLink} style={{ background: 'var(--bg-card)', color: 'var(--text)', border: '1px solid var(--border)' }}>
-                  New Session
-                </a>
-              </div>
-            ) : (
-              <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                Generating report...
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className={styles.inputArea}>
-            <button
-              className={`${styles.micButton} ${isRecording ? styles.micRecording : ''}`}
-              onClick={handleVoice}
-              disabled={isLoading || isTranscribing || isEnding || isSpeaking}
-              title={isRecording ? 'Stop recording' : 'Start recording'}
-            >
-              {isRecording ? '⏹' : '🎤'}
-            </button>
-            <textarea
-              ref={textareaRef}
-              className={styles.textArea}
-              placeholder={micError || 'Type your answer... (Cmd+Enter to send)'}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isLoading || isRecording || isTranscribing || isEnding || isSpeaking}
-              rows={1}
-            />
-            <button
-              className={styles.sendButton}
-              onClick={() => submitAnswer(input)}
-              disabled={isLoading || isRecording || isTranscribing || isEnding || isSpeaking || !input.trim()}
-            >
-              Send
-            </button>
+        {/* Thinking indicator */}
+        {!isComplete && !isEnding && (isLoading || isTranscribing) && (
+          <div className={styles.interviewerWrapper}>
+            <div className={styles.avatar}>AI</div>
+            <div className={`${styles.message} ${styles.thinking}`}>
+              {isTranscribing ? 'Transcribing...' : 'Thinking...'}
+            </div>
           </div>
         )}
+
+        {/* Speaking indicator */}
+        {isSpeaking && (
+          <div className={styles.interviewerWrapper}>
+            <div className={`${styles.avatar} ${styles.avatarActive}`}>AI</div>
+            <div className={`${styles.message} ${styles.interviewer}`}>
+              <div className={styles.speakingDots}>
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
       </div>
-    </>
+
+      {isComplete ? (
+        <div className={styles.completeBanner}>
+          <p>Interview complete!</p>
+          {reportReady ? (
+            <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a href={`/report/${id}`} className={styles.reportLink}>
+                View Report
+              </a>
+              <a href="/progress" className={styles.reportLink} style={{ background: 'var(--bg-card)', color: 'var(--text)', border: '1px solid var(--border)' }}>
+                Progress
+              </a>
+              <a href="/new?reset=1" className={styles.reportLink} style={{ background: 'var(--bg-card)', color: 'var(--text)', border: '1px solid var(--border)' }}>
+                New Session
+              </a>
+            </div>
+          ) : (
+            <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+              Generating report...
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className={styles.inputArea}>
+          <button
+            className={`${styles.micButton} ${isRecording ? styles.micRecording : ''}`}
+            onClick={handleVoice}
+            disabled={isLoading || isTranscribing || isEnding || isSpeaking}
+            title={isRecording ? 'Stop recording' : 'Start recording'}
+          >
+            {isRecording ? '⏹' : '🎤'}
+          </button>
+          <textarea
+            ref={textareaRef}
+            className={styles.textArea}
+            placeholder={micError || 'Type your answer... (Cmd+Enter to send)'}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={isLoading || isRecording || isTranscribing || isEnding || isSpeaking}
+            rows={1}
+          />
+          <button
+            className={styles.sendButton}
+            onClick={() => submitAnswer(input)}
+            disabled={isLoading || isRecording || isTranscribing || isEnding || isSpeaking || !input.trim()}
+          >
+            Send
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
