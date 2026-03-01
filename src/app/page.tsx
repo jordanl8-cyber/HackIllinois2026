@@ -57,7 +57,15 @@ export default function LandingPage() {
 
   const handleStart = () => {
     if (!name.trim()) return;
-    localStorage.setItem('userName', name.trim());
+    const trimmedName = name.trim();
+    const prevName = localStorage.getItem('userName');
+    // Different user — clear cached job context so they see the form
+    if (prevName !== trimmedName) {
+      localStorage.removeItem('jobRole');
+      localStorage.removeItem('jobCompany');
+      localStorage.removeItem('jobDescription');
+    }
+    localStorage.setItem('userName', trimmedName);
     router.push('/new');
   };
 
