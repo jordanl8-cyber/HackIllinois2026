@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { classifyInterview } from '@/lib/classifier';
 import { generateQuestion } from '@/lib/interviewer';
-import { getWeaknessProfile, buildFocusPlan, getPastInterviewInsights, getPastQuestions } from '@/lib/adaptation';
+import { getWeaknessProfile, buildFocusPlan, getPastInterviewInsights, getPastQuestions, getCategoryHistory, selectNextCategory } from '@/lib/adaptation';
 import { store } from '@/lib/store';
 import { Session } from '@/lib/types';
 import { INTERVIEW_PHASES, MAX_QUESTIONS, TECHNICAL_PHASES } from '@/lib/constants';
@@ -18,13 +18,17 @@ export async function POST(req: NextRequest) {
     // 1. Classify interview type
     const classification = await classifyInterview(role, company, jobDescription);
 
-    // 2. Retrieve weakness profile, build focus plan, fetch past insights + past questions
-    const [profile, pastInsights, pastQuestions] = await Promise.all([
+    // 2. Retrieve weakness profile, build focus plan, fetch past insights + past questions + category history
+    const [profile, pastInsights, pastQuestions, categoryHistory] = await Promise.all([
       getWeaknessProfile(userName),
       getPastInterviewInsights(userName),
       getPastQuestions(userName),
+      getCategoryHistory(userName),
     ]);
     const focusPlan = buildFocusPlan(profile);
+
+    // 2b. Select the next question category via adaptive algorithm
+    const questionCategory = selectNextCategory(classification.interviewType, categoryHistory);
 
     // Override difficulty if adaptation has data
     const difficulty = focusPlan.weaknesses.length > 0 ? focusPlan.difficulty : classification.difficulty;
@@ -43,6 +47,8 @@ export async function POST(req: NextRequest) {
         focusPlan: focusPlan.weaknesses.length > 0 ? focusPlan : undefined,
         pastInsights: pastInsights.length > 0 ? pastInsights : undefined,
         pastQuestions: pastQuestions.length > 0 ? pastQuestions : undefined,
+        questionCategory,
+        categoryHistory: categoryHistory.length > 0 ? categoryHistory : undefined,
       },
       messages: [],
       questionCount: 0,

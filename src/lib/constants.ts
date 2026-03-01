@@ -54,6 +54,10 @@ export const CONSULTING_CATEGORIES: ConsultingCategory[] = [
   'investment_decisions', 'operational_bottlenecks',
 ];
 
+export const ACCOUNTING_CATEGORIES: string[] = [
+  'technical_proficiency', 'behavioral_star', 'software_process', 'industry_specific',
+];
+
 export const CATEGORY_LABELS: Record<string, string> = {
   arrays_strings: 'Arrays / Strings',
   hash_maps: 'Hash Maps',
@@ -69,6 +73,19 @@ export const CATEGORY_LABELS: Record<string, string> = {
   strategic_decisions: 'Strategic Decisions',
   investment_decisions: 'Investment Decisions',
   operational_bottlenecks: 'Operational Bottlenecks',
+  technical_proficiency: 'Technical Proficiency (GAAP/IFRS)',
+  behavioral_star: 'Behavioral (STAR-based)',
+  software_process: 'Software / Process (Excel, ERP)',
+  industry_specific: 'Industry-Specific (AP/AR)',
+  product_sense: 'Product Sense',
+  metrics: 'Metrics',
+  tradeoffs: 'Tradeoffs',
+  prioritization: 'Prioritization',
+  leadership: 'Leadership',
+  conflict: 'Conflict',
+  failure: 'Failure',
+  teamwork: 'Teamwork',
+  growth: 'Growth',
 };
 
 export const CATEGORIES_BY_TYPE: Record<InterviewType, QuestionCategory[]> = {

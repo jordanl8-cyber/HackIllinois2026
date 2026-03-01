@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/store';
 import { getOpenAI } from '@/lib/openai';
 import { reportPrompt } from '@/lib/prompts';
-import { getWeaknessProfile, storeWeaknessProfile, storeSessionReport, updateWeaknessProfile } from '@/lib/adaptation';
-import { SessionReport, SkillScore } from '@/lib/types';
+import { getWeaknessProfile, storeWeaknessProfile, storeSessionReport, updateWeaknessProfile, storeCategoryRecord } from '@/lib/adaptation';
+import { SessionReport, SkillScore, CategoryRecord } from '@/lib/types';
 
 export async function POST(
   req: NextRequest,
@@ -38,7 +38,7 @@ export async function POST(
     const openai = getOpenAI();
     const response = await openai.chat.completions.create({
       model: 'gpt-5.2',
-      messages: [{ role: 'user', content: reportPrompt(session.config, session.messages, allScores) }],
+      messages: [{ role: 'user', content: reportPrompt(session.config, session.messages, allScores, session.config.categoryHistory) }],
       response_format: { type: 'json_object' },
       temperature: 0.3,
     });
@@ -83,6 +83,26 @@ export async function POST(
         const existingProfile = await getWeaknessProfile(session.config.userName);
         const updatedProfile = updateWeaknessProfile(existingProfile, session.config.userName, avgScores);
         await storeWeaknessProfile(session.config.userName, updatedProfile);
+
+        // Store category record for adaptive category algorithm
+        if (session.config.questionCategory) {
+          const categoryHistory = session.config.categoryHistory || [];
+          const sameCategory = categoryHistory.filter((r) => r.category === session.config.questionCategory);
+          const lastSameCategory = sameCategory.length > 0 ? sameCategory[sameCategory.length - 1] : null;
+
+          const categoryRecord: CategoryRecord = {
+            category: session.config.questionCategory,
+            score: report.overallScore,
+            completed: report.overallScore >= 7.5,
+            interviewNumber: categoryHistory.length + 1,
+            mistakes: report.weaknesses,
+            strengths: report.strengths,
+            weaknesses: report.weaknesses,
+            timestamp: Date.now(),
+            improvementDelta: lastSameCategory ? report.overallScore - lastSameCategory.score : undefined,
+          };
+          await storeCategoryRecord(session.config.userName, categoryRecord);
+        }
       }
     } catch (memErr) {
       console.error('Supermemory storage failed (non-critical):', memErr);

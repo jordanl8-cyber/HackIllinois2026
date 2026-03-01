@@ -23,11 +23,17 @@ function NewSessionForm() {
     }
     setUserName(stored);
 
-    // If reset, clear stored job context
+    // If reset, clear stored job context and all server-side data
     if (isReset) {
       localStorage.removeItem('jobRole');
       localStorage.removeItem('jobCompany');
       localStorage.removeItem('jobDescription');
+      // Clear Supermemory + in-memory store on the server
+      fetch('/api/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userName: stored }),
+      }).catch(() => {});
       return;
     }
 
