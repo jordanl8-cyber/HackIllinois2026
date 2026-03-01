@@ -306,9 +306,17 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         <div className={styles.completeBanner}>
           <p>Interview complete!</p>
           {reportReady ? (
-            <a href={`/report/${id}`} className={styles.reportLink}>
-              View Report
-            </a>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <a href={`/report/${id}`} className={styles.reportLink}>
+                View Report
+              </a>
+              <a href="/progress" className={styles.reportLink} style={{ background: 'var(--bg-secondary)', color: 'var(--text)' }}>
+                Progress
+              </a>
+              <a href="/new?reset=1" className={styles.reportLink} style={{ background: 'var(--bg-secondary)', color: 'var(--text)' }}>
+                New Session
+              </a>
+            </div>
           ) : (
             <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
               Generating report...

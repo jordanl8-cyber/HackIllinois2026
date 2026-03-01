@@ -214,11 +214,11 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
       </div>
 
       <div className={styles.actions}>
-        <a href="/new" className={`${styles.actionButton} ${styles.primaryAction}`}>
-          Start New Session
-        </a>
-        <a href="/progress" className={`${styles.actionButton} ${styles.secondaryAction}`}>
+        <a href="/progress" className={`${styles.actionButton} ${styles.primaryAction}`}>
           View Progress
+        </a>
+        <a href="/new?reset=1" className={`${styles.actionButton} ${styles.secondaryAction}`}>
+          New Session
         </a>
       </div>
     </main>

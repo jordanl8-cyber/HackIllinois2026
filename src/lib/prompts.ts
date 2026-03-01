@@ -1,4 +1,4 @@
-import { SessionConfig, SkillScore, Message, FocusPlan } from './types';
+import { SessionConfig, SkillScore, Message, FocusPlan, CategoryRecord } from './types';
 
 export function classificationPrompt(role: string, company: string | undefined, jd: string): string {
   return `You are an expert interview classifier. Given the following job information, determine:
@@ -62,14 +62,21 @@ ${config.pastInsights.map((i) => `- ${i}`).join('\n')}
 Use these insights to ask more targeted follow-up questions when relevant to the current phase. Do not mention these insights directly to the candidate.`
     : '';
 
+  const categoryBlock = config.questionCategory
+    ? `\nQUESTION CATEGORY: Your technical question MUST be in the category: "${config.questionCategory}".
+${config.interviewType === 'swe' ? `For SWE, this means a LeetCode-style problem focused on ${config.questionCategory.replace(/_/g, ' ')}. The problem should be approachable and beginner-friendly within this data structure category.` : ''}
+${config.interviewType === 'consulting' ? `For consulting, this means a case study focused on ${config.questionCategory.replace(/_/g, ' ')}.` : ''}`
+    : '';
+
   return `You are a professional ${config.interviewType} interviewer conducting a mock interview.
+You are encouraging, constructive, and supportive. You want the candidate to succeed and show their best work. Avoid being adversarial or overly critical.
 
 Role being interviewed for: ${config.role}
 ${config.company ? `Company: ${config.company}` : ''}
 Interview type: ${config.interviewType}
 Current phase: ${phase}
 Difficulty: ${config.difficulty}
-${focusInstructions}${pastInsightsBlock}${pastQuestionsBlock}${technicalQuestionBlock}
+${focusInstructions}${pastInsightsBlock}${pastQuestionsBlock}${technicalQuestionBlock}${categoryBlock}
 
 Conversation so far:
 ${conversationHistory || '(none yet)'}
@@ -99,7 +106,7 @@ export function evaluationPrompt(
   answer: string,
   relevantSkills: string[]
 ): string {
-  return `You are an expert interview evaluator. Score the candidate's answer.
+  return `You are an encouraging interview evaluator. Score the candidate's answer generously and constructively.
 
 Interview type: ${config.interviewType}
 Role: ${config.role}
@@ -147,7 +154,8 @@ Your scoring decision must be career-specific and reflected only in the evaluati
 export function reportPrompt(
   config: SessionConfig,
   messages: Message[],
-  allScores: SkillScore[]
+  allScores: SkillScore[],
+  categoryHistory?: CategoryRecord[]
 ): string {
   const transcript = messages
     .map((m) => `${m.role}: ${m.content}`)
@@ -157,7 +165,26 @@ export function reportPrompt(
     .map((s) => `${s.skill}: ${s.score}/10 - ${s.evidence}`)
     .join('\n');
 
-  return `You are an interview performance analyst. Generate a comprehensive session report.
+  // Build cross-interview comparison block from category history
+  let crossInterviewBlock = '';
+  if (categoryHistory && categoryHistory.length > 0 && config.questionCategory) {
+    const sameCategory = categoryHistory.filter((r) => r.category === config.questionCategory);
+    if (sameCategory.length > 0) {
+      const pastAttempts = sameCategory.map((r, i) =>
+        `Interview #${r.interviewNumber}: Score ${r.score}/10${r.weaknesses?.length ? `, Weaknesses: ${r.weaknesses.join(', ')}` : ''}${r.strengths?.length ? `, Strengths: ${r.strengths.join(', ')}` : ''}${r.mistakes?.length ? `, Mistakes: ${r.mistakes.join(', ')}` : ''}`
+      ).join('\n');
+      crossInterviewBlock = `\n\nCROSS-INTERVIEW COMPARISON (same category: ${config.questionCategory}):
+Previous attempts in this category:
+${pastAttempts}
+
+IMPORTANT: Compare the candidate's current performance against their previous attempts.
+- If they improved: explicitly reference the past interview and praise the improvement. Example: "In your previous interview, you struggled with X. This time, you corrected that — strong improvement."
+- If they repeated a mistake: explicitly mention the repeated weakness. Example: "You've struggled with X in this category before. This remains a priority improvement area."
+- Be specific about what changed or didn't change.`;
+    }
+  }
+
+  return `You are an encouraging interview performance analyst. Generate a comprehensive session report. Be constructive and supportive — highlight what went well before discussing areas for improvement.
 
 Interview type: ${config.interviewType}
 Role: ${config.role}
@@ -168,6 +195,7 @@ ${transcript}
 
 Individual scores collected:
 ${scoresSummary}
+${crossInterviewBlock}
 
 Generate a report in JSON:
 {
