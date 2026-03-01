@@ -1,8 +1,22 @@
 import { Session, SessionReport, CategoryRecord } from './types';
 
-const sessions = new Map<string, Session>();
-const reports = new Map<string, SessionReport>();
-const categoryHistoryByUser = new Map<string, CategoryRecord[]>();
+// Attach Maps to globalThis so they survive Next.js HMR module re-evaluation in dev mode.
+// In production this is a no-op — the process never restarts mid-request.
+declare global {
+  // eslint-disable-next-line no-var
+  var __sessions: Map<string, Session> | undefined;
+  // eslint-disable-next-line no-var
+  var __reports: Map<string, SessionReport> | undefined;
+  // eslint-disable-next-line no-var
+  var __categoryHistory: Map<string, CategoryRecord[]> | undefined;
+}
+
+const sessions: Map<string, Session> =
+  globalThis.__sessions ?? (globalThis.__sessions = new Map());
+const reports: Map<string, SessionReport> =
+  globalThis.__reports ?? (globalThis.__reports = new Map());
+const categoryHistoryByUser: Map<string, CategoryRecord[]> =
+  globalThis.__categoryHistory ?? (globalThis.__categoryHistory = new Map());
 
 export const store = {
   getSession: (id: string) => sessions.get(id),
